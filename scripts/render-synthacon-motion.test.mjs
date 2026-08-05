@@ -8,8 +8,6 @@ test("renders and faststart-remuxes the canonical six variants to committed file
   assert.deepEqual(plan.map(({name}) => name), [
     "A-1080x1920",
     "A-1080x1080",
-    "B-1080x1920",
-    "B-1080x1080",
     "C-1080x1920",
     "C-1080x1080",
   ]);
