@@ -8,7 +8,7 @@ import {revealFragment, revealUnit} from "../lib/textReveal";
 
 export type MotionVariantProps = {
   brandId: string;
-  direction: "A" | "B" | "C";
+  direction: "A" | "C";
   headline: string;
   caption: string;
   light?: boolean;
