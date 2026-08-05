@@ -56,7 +56,7 @@ export const MotionVariant: React.FC<MotionVariantProps> = ({brandId, direction,
   </div>;
 
   return <AbsoluteFill style={{background: palette.bg, color: palette.ink, padding: pad, fontFamily: fonts.body, overflow: "hidden"}}>
-    {scene.layout !== "matte-gallery" && <div style={{position: "absolute", inset: 0, backgroundImage: `radial-gradient(circle, ${palette.ink}${alphaHex(.1)} 1px, transparent 1px)`, backgroundSize: "24px 24px", opacity: scene.layout === "spec-plate" ? .45 : .7}} />}
+    {<div style={{position: "absolute", inset: 0, backgroundImage: `radial-gradient(circle, ${palette.ink}${alphaHex(.1)} 1px, transparent 1px)`, backgroundSize: "24px 24px", opacity: scene.layout === "spec-plate" ? .45 : .7}} />}
     <div style={{position: "absolute", inset: portrait ? 40 : 32, border: `1px solid ${palette.line}`, opacity: .75}} />
     {header}
 
