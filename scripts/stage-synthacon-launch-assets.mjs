@@ -6,7 +6,7 @@ const studioRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const appRoot = resolve(process.argv[2] ?? "../synthacon/synthacon-app");
 const sourceRoot = resolve(appRoot, "marketing/social/campaigns/launch/assets/gear");
 const destination = resolve(studioRoot, "studio/public/synthacon/launch");
-const assets = ["synth-poly-dark.png", "synth-moog-white.png"];
+const assets = ["synth-poly-dark.png"];
 
 mkdirSync(destination, {recursive: true});
 for (const asset of assets) copyFileSync(resolve(sourceRoot, asset), resolve(destination, basename(asset)));

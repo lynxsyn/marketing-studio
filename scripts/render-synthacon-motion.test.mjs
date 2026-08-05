@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {renderPlan} from "./render-synthacon-motion.mjs";
 
-test("renders and faststart-remuxes the canonical six variants to committed filenames", () => {
+test("renders and faststart-remuxes the canonical four variants to committed filenames", () => {
   const plan = renderPlan("/tmp/props", "/tmp/rendered");
-  assert.equal(plan.length, 6);
+  assert.equal(plan.length, 4);
   assert.deepEqual(plan.map(({name}) => name), [
     "A-1080x1920",
     "A-1080x1080",
