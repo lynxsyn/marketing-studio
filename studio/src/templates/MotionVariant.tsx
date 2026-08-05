@@ -69,14 +69,6 @@ export const MotionVariant: React.FC<MotionVariantProps> = ({brandId, direction,
       <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 1010 : 650}}><Headline text={headline} frame={frame - timing.mark} fps={fps} brand={brand} color={palette.ink} font={fonts.display} size={headlineSize} /></div>
     </>}
 
-    {scene.layout === "matte-gallery" && <>
-      <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 300 : 210}}><Headline text={headline} frame={frame - timing.mark} fps={fps} brand={brand} color={palette.ink} font={fonts.display} size={headlineSize} /></div>
-      <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 780 : 520, height: portrait ? 650 : 360, border: `1px solid ${palette.line}`, borderRadius: 28, overflow: "hidden", opacity: contentOpacity, transform: `scale(${gearScale})`, boxShadow: `0 18px 50px ${palette.accent}${alphaHex(.14)}`}}>
-        <Img src={staticFile(scene.gearAsset!)} style={{width: "100%", height: "100%", objectFit: "cover"}} />
-      </div>
-      <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 1490 : 910, display: "flex", justifyContent: "space-between", fontFamily: fonts.mono, fontSize: portrait ? 22 : 18, color: palette.muted, opacity: contentOpacity}}><span>BUY · SELL · RENT</span><span>SYNTHACON.COM</span></div>
-    </>}
-
     {scene.layout === "type-only" && <>
       <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 380 : 240, display: "grid", gap: portrait ? 70 : 34}}>
         {["Buy", "Sell", "Rent"].map((word, index) => <div key={word} style={{display: "flex", alignItems: "center", gap: 38, opacity: interpolate(frame, [timing.mark + index * 8, timing.mark + 18 + index * 8], [0, 1], {extrapolateLeft: "clamp", extrapolateRight: "clamp"})}}><WaveMark path={[motionVariantScene("A").wavePath, motionVariantScene("C").wavePath, motionVariantScene("A").wavePath][index]} color={palette.accent} progress={markProgress} width={portrait ? 300 : 250} /><span style={{fontFamily: fonts.display, fontWeight: 800, fontSize: portrait ? 112 : 84, letterSpacing: "-.05em"}}>{word}</span></div>)}

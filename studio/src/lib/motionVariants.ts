@@ -1,7 +1,7 @@
 export type MotionVariantTiming = {mark: number; headline: number; hold: number};
 
 export type MotionVariantScene = {
-  layout: "spec-plate" | "matte-gallery" | "type-only";
+  layout: "spec-plate" | "type-only";
   gearAsset: string | null;
   wavePath: string;
   label: string;
