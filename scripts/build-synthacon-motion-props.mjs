@@ -9,7 +9,8 @@ const copy = {
   C: {headline: "Whatever shape your setup takes.", caption: "Buy, sell, and rent on the marketplace built only for synthesizers.", light: false},
 };
 
-export const motionVariants = ["A", "B", "C"].flatMap((direction) => [
+export const motionVariants = ["A", "C"] // Direction B excluded: r5 caption collision, queued as launch-motion-direction-b-caption-fix
+  .flatMap((direction) => [
   {brandId: "synthacon", direction, ...copy[direction], formatWidth: 1080, formatHeight: 1920},
   {brandId: "synthacon", direction, ...copy[direction], formatWidth: 1080, formatHeight: 1080},
 ]);
