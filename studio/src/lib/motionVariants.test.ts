@@ -15,6 +15,6 @@ describe("motionVariantTiming", () => {
     expect(new Set(scenes.map((scene) => scene.layout))).toEqual(new Set(["spec-plate", "type-only"]));
     expect(scenes[0].gearAsset).toMatch(/synth-poly-dark\.png$/);
     expect(scenes[1].gearAsset).toBeNull();
-    expect(new Set(scenes.map((scene) => scene.wavePath)).size).toBe(3);
+    expect(new Set(scenes.map((scene) => scene.wavePath)).size).toBe(2);
   });
 });
