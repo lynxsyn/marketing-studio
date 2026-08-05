@@ -5,7 +5,6 @@ import {fileURLToPath} from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const copy = {
   A: {headline: "Every synth has a next owner.", caption: "Buy, sell, and rent synthesizers with people who know the difference.", light: false},
-  B: {headline: "A market that speaks synth.", caption: "Gear near you, from people who play.", light: true},
   C: {headline: "Whatever shape your setup takes.", caption: "Buy, sell, and rent on the marketplace built only for synthesizers.", light: false},
 };
 
