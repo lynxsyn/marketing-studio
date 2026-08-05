@@ -1,28 +1,90 @@
 import React from "react";
-import {AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig} from "remotion";
-import {getBrand} from "../lib/brand";
+import {AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig} from "remotion";
+import {CaptionTrack} from "../components/CaptionTrack";
+import {alphaHex, getBrand} from "../lib/brand";
+import {loadBrandFonts} from "../lib/fonts";
+import {motionVariantScene, motionVariantTiming} from "../lib/motionVariants";
 import {revealFragment, revealUnit} from "../lib/textReveal";
-import {motionVariantTiming} from "../lib/motionVariants";
 
-export type MotionVariantProps = {brandId: string; direction: "A" | "B" | "C"; headline: string; caption: string; light?: boolean; formatWidth?: number; formatHeight?: number};
+export type MotionVariantProps = {
+  brandId: string;
+  direction: "A" | "B" | "C";
+  headline: string;
+  caption: string;
+  light?: boolean;
+  formatWidth?: number;
+  formatHeight?: number;
+};
+
+const WaveMark: React.FC<{path: string; color: string; progress: number; width?: number}> = ({path, color, progress, width = 320}) => (
+  <svg width={width} height={Math.round(width * 0.19)} viewBox="0 0 960 180" fill="none">
+    <path d={path} stroke={color} strokeWidth={10} strokeLinecap="round" strokeLinejoin="round" pathLength={100} strokeDasharray={100} strokeDashoffset={100 - progress * 100} />
+  </svg>
+);
+
+const Headline: React.FC<{text: string; frame: number; fps: number; brand: ReturnType<typeof getBrand>; color: string; font: string; size: number}> = ({text, frame, fps, brand, color, font, size}) => {
+  const units = revealUnit(brand.motion.textReveal, text) === "char" ? [...text] : text.split(" ");
+  return <div style={{fontFamily: font, fontWeight: 800, fontSize: size, lineHeight: .92, letterSpacing: "-.05em", color}}>
+    {units.map((unit, index) => <span key={`${unit}-${index}`} style={{display: "inline-block", marginRight: unit === " " ? size * .22 : size * .12, ...revealFragment(brand.motion.textReveal, {frame, fps, motion: brand.motion, index, total: units.length, scale: 1})}}>{unit}</span>)}
+  </div>;
+};
 
 export const MotionVariant: React.FC<MotionVariantProps> = ({brandId, direction, headline, caption, light}) => {
   const frame = useCurrentFrame();
   const {fps, width, height} = useVideoConfig();
+  const portrait = height > width;
   const brand = getBrand(brandId);
+  const scene = motionVariantScene(direction);
+  const useLight = light ?? scene.light;
+  if (useLight && !brand.light) throw new Error(`${brand.id} has no light palette`);
+  const palette = useLight
+    ? {bg: brand.light!.bg, ink: brand.light!.ink, accent: brand.light!.brand, line: brand.light!.outlineVariant, muted: brand.colors.ink3}
+    : {bg: brand.colors.bg, ink: brand.colors.ink, accent: brand.colors.brand, line: brand.colors.line, muted: brand.colors.ink2};
+  const fonts = loadBrandFonts(brand);
   const timing = motionVariantTiming(fps, fps, brand.motion.tempo);
-  const scale = width / 1080;
-  const words = revealUnit(brand.motion.textReveal, headline) === "char" ? [...headline] : headline.split(" ");
-  const bg = light ? brand.light.bg : brand.colors.bg;
-  const ink = light ? brand.light.ink : brand.colors.ink;
-  const accent = light ? brand.light.brand : brand.colors.brand;
-  const directionLabel = direction === "A" ? "SIGNAL PLATE" : direction === "B" ? "MATTE GALLERY" : "WAVEFORM";
-  const points = Array.from({length: 8}, (_, index) => `${index * 160},${220 + Math.sin(index * 1.3) * 50}`).join(" ");
-  return <AbsoluteFill style={{background: bg, color: ink, padding: 72 * scale, fontFamily: brand.fonts.body}}>
-    <div style={{position: "absolute", inset: 48 * scale, border: `1px solid ${brand.colors.line}`, opacity: .7}} />
-    <div style={{position: "absolute", top: 72 * scale, left: 72 * scale, color: accent, fontFamily: brand.fonts.mono, fontSize: 22 * scale}}>SYNTHACON / {direction} / {directionLabel}</div>
-    <svg style={{position: "absolute", top: 160 * scale, left: 72 * scale, width: 800 * scale, height: 340 * scale, opacity: interpolate(frame, [0, timing.mark], [0, 1], {extrapolateRight: "clamp"})}} viewBox="0 0 1120 440"><polyline points={points} fill="none" stroke={accent} strokeWidth="8" pathLength="100" strokeDasharray="100" strokeDashoffset={interpolate(frame, [0, timing.mark], [100, 0], {extrapolateRight: "clamp"})} /></svg>
-    <div style={{position: "absolute", left: 72 * scale, right: 72 * scale, bottom: height > width ? 340 * scale : 220 * scale, fontFamily: brand.fonts.display, fontSize: (height > width ? 78 : 64) * scale, lineHeight: 1.02, fontWeight: 700}}>{words.map((word, index) => <span key={`${word}-${index}`} style={{display: "inline-block", marginRight: 18 * scale, ...revealFragment(brand.motion.textReveal, {frame: frame - timing.mark, fps, motion: brand.motion, index, total: words.length, scale})}}>{word}</span>)}</div>
-    <div style={{position: "absolute", left: 72 * scale, right: 72 * scale, bottom: 100 * scale, fontSize: 28 * scale, opacity: interpolate(frame, [timing.mark + timing.headline, timing.mark + timing.headline + 18], [0, 1], {extrapolateRight: "clamp"})}}>{caption} · JOIN THE BETA</div>
+  const markProgress = interpolate(frame, [0, timing.mark], [0, 1], {extrapolateLeft: "clamp", extrapolateRight: "clamp"});
+  const contentOpacity = interpolate(frame, [timing.mark - 6, timing.mark + 18], [0, 1], {extrapolateLeft: "clamp", extrapolateRight: "clamp"});
+  const gearScale = interpolate(frame, [timing.mark, timing.mark + 28], [.96, 1], {extrapolateLeft: "clamp", extrapolateRight: "clamp"});
+  const pad = portrait ? 64 : 56;
+  const headlineSize = scene.layout === "type-only" ? (portrait ? 108 : 72) : portrait ? 124 : 92;
+  const header = <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 2}}>
+    <WaveMark path={scene.wavePath} color={palette.accent} progress={markProgress} width={portrait ? 260 : 220} />
+    <div style={{fontFamily: fonts.display, fontWeight: 800, fontSize: portrait ? 30 : 26, letterSpacing: "-.04em", color: palette.ink}}>Synthacon</div>
+  </div>;
+  const footer = <div style={{position: "absolute", left: pad, right: pad, bottom: portrait ? 74 : 48, display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: fonts.mono, fontSize: portrait ? 22 : 18, color: palette.accent, opacity: contentOpacity}}>
+    <span>{scene.label}</span><span>JOIN THE BETA</span>
+  </div>;
+
+  return <AbsoluteFill style={{background: palette.bg, color: palette.ink, padding: pad, fontFamily: fonts.body, overflow: "hidden"}}>
+    {scene.layout !== "matte-gallery" && <div style={{position: "absolute", inset: 0, backgroundImage: `radial-gradient(circle, ${palette.ink}${alphaHex(.1)} 1px, transparent 1px)`, backgroundSize: "24px 24px", opacity: scene.layout === "spec-plate" ? .45 : .7}} />}
+    <div style={{position: "absolute", inset: portrait ? 40 : 32, border: `1px solid ${palette.line}`, opacity: .75}} />
+    {header}
+
+    {scene.layout === "spec-plate" && <>
+      <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 250 : 170, height: portrait ? 650 : 410, border: `1px solid ${palette.line}`, borderRadius: 24, overflow: "hidden", opacity: contentOpacity, transform: `scale(${gearScale})`}}>
+        <Img src={staticFile(scene.gearAsset!)} style={{width: "100%", height: "100%", objectFit: "cover"}} />
+        <div style={{position: "absolute", inset: 0, backgroundImage: `radial-gradient(circle, ${palette.ink}${alphaHex(.16)} 1px, transparent 1px)`, backgroundSize: "24px 24px"}} />
+        <div style={{position: "absolute", left: 28, bottom: 24, fontFamily: fonts.mono, color: palette.accent, fontSize: 18}}>POLYSYNTH / GOOD / LOCAL</div>
+      </div>
+      <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 1010 : 650}}><Headline text={headline} frame={frame - timing.mark} fps={fps} brand={brand} color={palette.ink} font={fonts.display} size={headlineSize} /></div>
+    </>}
+
+    {scene.layout === "matte-gallery" && <>
+      <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 300 : 210}}><Headline text={headline} frame={frame - timing.mark} fps={fps} brand={brand} color={palette.ink} font={fonts.display} size={headlineSize} /></div>
+      <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 780 : 520, height: portrait ? 650 : 360, border: `1px solid ${palette.line}`, borderRadius: 28, overflow: "hidden", opacity: contentOpacity, transform: `scale(${gearScale})`, boxShadow: `0 18px 50px ${palette.accent}${alphaHex(.14)}`}}>
+        <Img src={staticFile(scene.gearAsset!)} style={{width: "100%", height: "100%", objectFit: "cover"}} />
+      </div>
+      <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 1490 : 910, display: "flex", justifyContent: "space-between", fontFamily: fonts.mono, fontSize: portrait ? 22 : 18, color: palette.muted, opacity: contentOpacity}}><span>BUY · SELL · RENT</span><span>SYNTHACON.COM</span></div>
+    </>}
+
+    {scene.layout === "type-only" && <>
+      <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 380 : 240, display: "grid", gap: portrait ? 70 : 34}}>
+        {["Buy", "Sell", "Rent"].map((word, index) => <div key={word} style={{display: "flex", alignItems: "center", gap: 38, opacity: interpolate(frame, [timing.mark + index * 8, timing.mark + 18 + index * 8], [0, 1], {extrapolateLeft: "clamp", extrapolateRight: "clamp"})}}><WaveMark path={[motionVariantScene("A").wavePath, motionVariantScene("C").wavePath, motionVariantScene("B").wavePath][index]} color={palette.accent} progress={markProgress} width={portrait ? 300 : 250} /><span style={{fontFamily: fonts.display, fontWeight: 800, fontSize: portrait ? 112 : 84, letterSpacing: "-.05em"}}>{word}</span></div>)}
+      </div>
+      <div style={{position: "absolute", left: pad, right: pad, top: portrait ? 1100 : 660}}><Headline text={headline} frame={frame - timing.mark - 20} fps={fps} brand={brand} color={palette.ink} font={fonts.display} size={headlineSize} /></div>
+      <WaveMark path={motionVariantScene("A").wavePath} color={palette.accent} progress={markProgress} width={952} />
+    </>}
+    <CaptionTrack cues={[{text: caption, fromFrame: timing.mark + timing.headline, toFrame: 250}]} brand={brand} />
+    {footer}
   </AbsoluteFill>;
 };
